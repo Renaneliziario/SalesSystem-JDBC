@@ -1,59 +1,108 @@
-# SalesSystem-JDBC: Integração Direta com Banco de Dados e SQL Nativo
+# SalesSystem-JDBC
 
-Este projeto demonstra o domínio técnico sobre a camada de persistência em Java utilizando **JDBC (Java Database Connectivity)**. Diferente de frameworks ORM, aqui o foco é o controle total sobre a execução de queries SQL, gerenciamento de conexões e transações nativas com o banco de dados **PostgreSQL**.
+![Java](https://img.shields.io/badge/Java-SE%2017-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![JDBC](https://img.shields.io/badge/Persistência-JDBC%20Nativo-336791?style=flat&logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Maven](https://img.shields.io/badge/Build-Maven-C71A36?style=flat&logo=apachemaven&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Concluído-brightgreen?style=flat)
 
----
-
-## 🏗️ Arquitetura de Persistência
-
-O sistema foi estruturado para demonstrar como o Java se comunica diretamente com motores de banco de dados relacionais:
-
-1.  **JDBC Nativo:** Uso de `PreparedStatement` para proteção contra SQL Injection e ganho de performance em consultas parametrizadas.
-2.  **Gerenciamento de Conexões:** Implementação de uma camada de infraestrutura para abertura e fechamento resiliente de conexões com o driver PostgreSQL.
-3.  **Transacionalidade:** Controle manual de `commit` e `rollback`, garantindo a atomicidade das operações complexas de venda (onde múltiplos registros em tabelas diferentes são alterados simultaneamente).
+> Sistema de vendas com persistência em PostgreSQL usando **JDBC puro**. O diferencial técnico é a implementação de um **mini-ORM via Reflection API e annotations customizadas**, eliminando SQL repetitivo sem depender de Hibernate ou outro framework externo.
 
 ---
 
-## 🛠️ Stack Tecnológica
+## ✨ Destaques Técnicos
 
-*   **Java SE (LTS):** Core da aplicação e lógica de negócio.
-*   **JDBC (PostgreSQL Driver):** Camada de integração direta com o banco de dados.
-*   **PostgreSQL:** Banco de dados relacional robusto utilizado para armazenamento persistente.
-*   **Maven:** Automação de build e gerenciamento de dependências.
+- **Mini-ORM proprietário** com `@Tabela`, `@ColunaTabela` e `@TipoChave` — o `GenericDAO` usa Reflection para mapear entidades para SQL automaticamente, sem Hibernate
+- **`PreparedStatement` em 100% das queries** — zero risco de SQL Injection
+- **Gerenciamento manual de transações** — commit/rollback explícito para garantir atomicidade em operações de venda (múltiplas tabelas)
+- **Hierarquia de exceções de negócio** — `DAOException`, `MaisDeUmRegistroException`, `TableException`, separando erros de infraestrutura de erros de domínio
+- **Padrão Factory** para hidratação de entidades a partir do `ResultSet`
+- **Testes de integração** com banco real: 11 cenários de `VendaDAOTest`
 
 ---
 
-## 🧩 Modelo de Dados e SQL
+## 🏗️ Arquitetura
 
-O projeto gerencia entidades complexas com foco em normalização e integridade:
+```
+┌─────────────────────────────────────┐
+│           CAMADA DE SERVIÇO         │  ← Regras de negócio
+│  ClienteService │ ProdutoService    │
+└──────────────┬──────────────────────┘
+               │ usa interface
+┌──────────────▼──────────────────────┐
+│            CAMADA DAO               │  ← Acesso ao banco
+│  ClienteDAO │ ProdutoDAO │ VendaDAO │
+│  └── GenericDAO<T, E> (Reflection)  │
+└──────────────┬──────────────────────┘
+               │ SQL via PreparedStatement
+┌──────────────▼──────────────────────┐
+│     PostgreSQL (vendas_online_2)    │
+└─────────────────────────────────────┘
+```
 
-| Entidade | Responsabilidade |
-| :--- | :--- |
-| **Cliente** | Gestão de dados cadastrais e identificação única por CPF. |
-| **Produto** | Catálogo com controle de estoque e precificação. |
-| **Venda** | Orquestração de transações comerciais vinculando clientes e produtos. |
+### Como o mini-ORM funciona
 
-**Destaque Técnico:** Todas as operações de CRUD (Create, Read, Update, Delete) foram escritas em **SQL ANSI**, demonstrando proficiência em scripts de banco de dados e modelagem relacional.
+```java
+// 1. Você anota a entidade:
+@Tabela("TB_CLIENTE")
+public class Cliente {
+    @TipoChave("getCpf")
+    @ColunaTabela(dbName = "cpf", setJavaName = "setCpf")
+    private Long cpf;
+}
+
+// 2. O GenericDAO lê via Reflection e monta o SQL e o ResultSet automaticamente.
+//    Sem código de mapeamento repetitivo em cada DAO.
+```
+
+---
+
+## 🛠️ Tecnologias
+
+| Tecnologia | Uso |
+|:---|:---|
+| Java SE 17 | Linguagem principal |
+| JDBC (PostgreSQL Driver) | Integração direta com banco |
+| Reflection API | Mapeamento ORM customizado |
+| Annotations customizadas | Metadados de mapeamento (`@Tabela`, `@TipoChave`) |
+| PostgreSQL | Banco de dados relacional |
+| Maven | Gerenciamento de dependências |
+| JUnit 4 | Testes de integração |
 
 ---
 
 ## 🚀 Como Executar
 
-### Pré-requisitos
-*   Java JDK 17 ou superior.
-*   Instância do **PostgreSQL** rodando localmente (porta padrão 5432).
-*   Driver JDBC do PostgreSQL configurado no projeto.
+**Pré-requisitos:** JDK 17+, Maven 3+, Docker
 
-### Passos
-1.  Importe o projeto em sua IDE (Eclipse/VS Code).
-2.  Crie a database `vendas_online_2` no seu PostgreSQL.
-3.  Configure as credenciais de acesso no arquivo de configuração de conexão (geralmente em `dao/generic`).
-4.  Execute a classe principal para iniciar o sistema e realizar as operações no banco.
+```bash
+# 1. Suba o PostgreSQL e pgAdmin via Docker Compose
+docker-compose up -d
+
+# 2. Crie o banco de dados no PostgreSQL
+createdb vendas_online_2
+
+# 3. Execute o script de criação das tabelas (na raiz do projeto)
+psql -d vendas_online_2 -f schema.sql
+
+# 4. As credenciais estão em:
+src/main/java/br/com/renan/dao/generic/jdbc/ConnectionFactory.java
+# (usuário: renan | senha: admin — ajuste conforme seu ambiente)
+
+# 5. Build e testes:
+mvn clean test
+```
 
 ---
 
-## 📌 Evolução Técnica
-Este projeto é o terceiro estágio da trilha de formação, servindo de ponte entre a lógica em memória e os frameworks de persistência modernos. O domínio do JDBC é o que garante que o desenvolvedor saiba debugar problemas complexos de performance e transações que frameworks automáticos podem ocultar.
+## 📌 Contexto no Portfólio
+
+Este é o **projeto 3 de 5** da trilha de evolução técnica:
+
+`UserControl (POO)` → `QualityGuard (Testes)` → **`SalesSystem-JDBC`** → `SalesPersistence-JPA` → `Sales-Microservices`
+
+> *Dominar JDBC antes de usar JPA garante que problemas reais de performance (N+1, transações abertas, pool esgotado) sejam entendidos na raiz, não apenas contornados por um framework.*
 
 ---
-*Desenvolvido por Renan Queiroz Eliziario como prova de conceito de persistência de dados e SQL nativo.*
+
+*Desenvolvido por [Renan Queiroz Eliziario](https://www.linkedin.com/in/renaneliziario/) · [Portfólio completo no GitHub](https://github.com/Renaneliziario)*
