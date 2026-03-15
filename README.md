@@ -78,7 +78,38 @@ public class Cliente {
 ```bash
 # 1. Suba o PostgreSQL e pgAdmin via Docker Compose
 docker-compose up -d
+```
 
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: renan
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: vendas_online_2
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_ui
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - ./pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+```
+
+```bash
 # 2. Crie o banco de dados no PostgreSQL
 createdb vendas_online_2
 
