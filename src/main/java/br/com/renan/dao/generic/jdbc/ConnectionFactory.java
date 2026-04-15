@@ -34,7 +34,7 @@ public class ConnectionFactory {
 	private static Connection initConnection() {
         try {
             return DriverManager.getConnection(
-            		"jdbc:postgresql://localhost:5432/vendas_online_2", "renan", "admin");
+            		"jdbc:postgresql://);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
