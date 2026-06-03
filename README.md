@@ -3,7 +3,6 @@
 ![Java](https://img.shields.io/badge/Java-SE%2017-ED8B00?style=flat&logo=openjdk&logoColor=white)
 ![JDBC](https://img.shields.io/badge/Persistência-JDBC%20Nativo-336791?style=flat&logo=postgresql&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
-![Maven](https://img.shields.io/badge/Build-Maven-C71A36?style=flat&logo=apachemaven&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Concluído-brightgreen?style=flat)
 
 > Sistema de vendas com persistência em PostgreSQL usando **JDBC puro**. O diferencial técnico é a implementação de um **mini-ORM via Reflection API e annotations customizadas**, eliminando SQL repetitivo sem depender de Hibernate ou outro framework externo.
@@ -66,22 +65,18 @@ public class Cliente {
 | Reflection API | Mapeamento ORM customizado |
 | Annotations customizadas | Metadados de mapeamento (`@Tabela`, `@TipoChave`) |
 | PostgreSQL | Banco de dados relacional |
-| Maven | Gerenciamento de dependências |
 | JUnit 4 | Testes de integração |
 
 ---
 
 ## 🚀 Como Executar
 
-**Pré-requisitos:** JDK 17+, Maven 3+, Docker
+**Pré-requisitos:** JDK 17+, Docker, Eclipse ou IntelliJ IDEA
 
-```bash
-# 1. Suba o PostgreSQL e pgAdmin via Docker Compose
-docker-compose up -d
-```
+### 1. Suba o PostgreSQL via Docker Compose
+Crie um arquivo `docker-compose.yml` na raiz com o conteúdo abaixo e execute:
 
 ```yaml
-# docker-compose.yml
 services:
   postgres:
     image: postgres:latest
@@ -110,19 +105,18 @@ services:
 ```
 
 ```bash
-# 2. Crie o banco de dados no PostgreSQL
-createdb vendas_online_2
-
-# 3. Execute o script de criação das tabelas (na raiz do projeto)
-psql -d vendas_online_2 -f schema.sql
-
-# 4. As credenciais estão em:
-src/main/java/br/com/renan/dao/generic/jdbc/ConnectionFactory.java
-# (usuário: renan | senha: admin — ajuste conforme seu ambiente)
-
-# 5. Build e testes:
-mvn clean test
+docker-compose up -d
 ```
+
+### 2. Configure a conexão
+As credenciais estão em:
+```
+src/br/com/renan/dao/generic/jdbc/ConnectionFactory.java
+```
+Ajuste usuário e senha conforme seu ambiente se necessário.
+
+### 3. Execute os testes na sua IDE
+Este projeto usa Java puro (sem Maven). Importe no Eclipse ou IntelliJ como **Java Project** e execute `VendaDAOTest` via JUnit.
 
 ---
 
