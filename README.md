@@ -82,8 +82,8 @@ services:
     image: postgres:latest
     container_name: postgres_db
     environment:
-      POSTGRES_USER: renan
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: seu_usuario
+      POSTGRES_PASSWORD: sua_senha
       POSTGRES_DB: vendas_online_2
     ports:
       - "5432:5432"
@@ -94,8 +94,8 @@ services:
     image: dpage/pgadmin4
     container_name: pgadmin_ui
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: seu@email.com
+      PGADMIN_DEFAULT_PASSWORD: sua_senha
     ports:
       - "5050:80"
     volumes:
